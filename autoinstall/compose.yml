@@ -1,0 +1,25 @@
+services:
+  ubuntu-autoinstall:
+    build:
+      context: .
+      dockerfile: Containerfile
+    ports:
+      - "8080:80"
+    volumes:
+      # Mount the www directory to allow live updates without rebuilding
+      - ./www:/usr/share/nginx/html:ro
+      # Mount nginx configuration file
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    container_name: ubuntu-autoinstall-server
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    labels:
+      - "description=Ubuntu autoinstall configuration server"
+      - "project=ubuntu-setup"
+
+# Optional: Add a network for isolation
+networks:
+  default:
+    name: ubuntu-autoinstall-net

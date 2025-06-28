@@ -1,0 +1,7 @@
+FROM nginx:alpine
+
+# Create directories for volume mounts
+RUN mkdir -p /usr/share/nginx/html /etc/nginx/conf.d
+
+# All files will be mounted at runtime via volumes
+VOLUME ["/usr/share/nginx/html", "/etc/nginx/nginx.conf"]

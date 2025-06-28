@@ -1,0 +1,50 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${TEMPLATE_HOSTNAME}
+    username: ${TEMPLATE_USERNAME}
+    password: "${TEMPLATE_PASSWORD_HASH}"
+
+  storage:
+    layout:
+      name: custom
+    config:
+      - type: disk
+        id: disk0
+        match:
+          serial: "${TEMPLATE_DISK_SERIAL}"
+        ptable: gpt
+        wipe: superblock-recursive
+      - type: partition
+        id: efi
+        size: 512M
+        flag: boot
+        device: disk0
+        filesystem: fat32
+        mount: /boot/efi
+      - type: partition
+        id: root
+        size: -1
+        device: disk0
+      - type: format
+        id: rootfs
+        fstype: btrfs
+        volume: root
+        mount_options: [compress=zstd]
+      - type: mount
+        id: root-mount
+        device: rootfs
+        path: /
+
+  late-commands:
+    - curtin in-target --target=/target -- bash -c "ROOT_DEV=$(findmnt -n -o SOURCE /); btrfs subvolume create /target/@"
+    - curtin in-target --target=/target -- bash -c "btrfs subvolume create /target/@home"
+    - curtin in-target --target=/target -- bash -c "btrfs subvolume create /target/@var"
+    - curtin in-target --target=/target -- bash -c "btrfs subvolume create /target/@log"
+    - curtin in-target --target=/target -- bash -c 'mount -o subvol=@home,compress=zstd $(findmnt -n -o SOURCE /) /target/home'
+    - curtin in-target --target=/target -- bash -c 'mount -o subvol=@var,compress=zstd $(findmnt -n -o SOURCE /) /target/var'
+    - curtin in-target --target=/target -- bash -c 'mount -o subvol=@log,compress=zstd $(findmnt -n -o SOURCE /) /target/var/log'
