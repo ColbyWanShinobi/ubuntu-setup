@@ -8,8 +8,6 @@ services:
     volumes:
       # Mount the www directory to allow live updates without rebuilding
       - ./www:/usr/share/nginx/html:ro
-      # Mount nginx configuration file
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     restart: unless-stopped
     container_name: ubuntu-autoinstall-server
     environment:
